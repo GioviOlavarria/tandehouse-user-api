@@ -20,6 +20,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwt;
 
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
@@ -27,6 +28,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         return path.startsWith("/auth/login")
                 || path.startsWith("/auth/register")
                 || path.startsWith("/auth/internal")
+                || path.startsWith("/flow") || "OPTIONS".equalsIgnoreCase(request.getMethod())
                 || "OPTIONS".equalsIgnoreCase(request.getMethod());
     }
 
