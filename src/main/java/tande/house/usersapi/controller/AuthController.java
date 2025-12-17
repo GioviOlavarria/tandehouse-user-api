@@ -26,13 +26,6 @@ public class AuthController {
     @Value("${internal.serviceKey:}")
     private String internalServiceKey;
 
-    @Value("${app.admin.code:}")
-    private String adminCode;
-
-    private static UserMeResponse toMe(User u) {
-        return new UserMeResponse(u.getId(), u.getEmail(), u.isAdmin(), u.getNombre());
-    }
-
     @PostMapping("/register")
     public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
         String email = req.getEmail().trim().toLowerCase();
@@ -41,27 +34,20 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email ya existe");
         }
 
-        boolean makeAdmin = Boolean.TRUE.equals(req.getAdmin());
-        if (makeAdmin) {
-            if (adminCode == null || adminCode.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Registro admin deshabilitado");
-            }
-            String provided = req.getAdminCode() == null ? "" : req.getAdminCode();
-            if (!adminCode.equals(provided)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Código administrador incorrecto");
-            }
-        }
-
         User u = new User();
         u.setNombre(req.getNombre().trim());
         u.setEmail(email);
         u.setPasswordHash(encoder.encode(req.getPassword()));
-        u.setAdmin(makeAdmin);
+        u.setAdmin(false);
 
         u = repo.save(u);
 
         String token = jwt.createToken(u.getId(), u.getEmail(), u.isAdmin());
-        return new AuthResponse(token, toMe(u));
+
+        return new AuthResponse(
+                new AuthResponse.UserDto(u.getId(), u.getEmail(), u.isAdmin(), u.getNombre()),
+                token
+        );
     }
 
     @PostMapping("/login")
@@ -76,7 +62,11 @@ public class AuthController {
         }
 
         String token = jwt.createToken(u.getId(), u.getEmail(), u.isAdmin());
-        return new AuthResponse(token, toMe(u));
+
+        return new AuthResponse(
+                new AuthResponse.UserDto(u.getId(), u.getEmail(), u.isAdmin(), u.getNombre()),
+                token
+        );
     }
 
     @GetMapping("/me")
@@ -89,7 +79,7 @@ public class AuthController {
         User u = repo.findById(p.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No autenticado"));
 
-        return toMe(u);
+        return new UserMeResponse(u.getId(), u.getEmail(), u.isAdmin(), u.getNombre());
     }
 
     @PostMapping("/internal/verify")
@@ -108,6 +98,6 @@ public class AuthController {
         User u = repo.findById(p.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido"));
 
-        return toMe(u);
+        return new UserMeResponse(u.getId(), u.getEmail(), u.isAdmin(), u.getNombre());
     }
 }
