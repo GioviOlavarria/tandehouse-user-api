@@ -57,7 +57,24 @@ public class AuthController {
         User u = repo.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas"));
 
-        if (!encoder.matches(req.getPassword(), u.getPassword())) {
+        String stored = u.getPassword();
+        String raw = req.getPassword();
+
+        boolean storedIsBCrypt = stored != null &&
+                (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$"));
+
+        boolean ok;
+        if (storedIsBCrypt) {
+            ok = encoder.matches(raw, stored);
+        } else {
+            ok = (stored != null && raw != null && raw.equals(stored));
+            if (ok) {
+                u.setPassword(encoder.encode(raw));
+                repo.save(u);
+            }
+        }
+
+        if (!ok) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
         }
 
@@ -68,6 +85,7 @@ public class AuthController {
                 token
         );
     }
+
 
     @GetMapping("/me")
     public UserMeResponse me() {
