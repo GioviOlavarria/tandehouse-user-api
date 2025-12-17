@@ -20,16 +20,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwt;
 
-
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        if (path == null) return false;
-        return path.startsWith("/auth/login")
-                || path.startsWith("/auth/register")
-                || path.startsWith("/auth/internal")
-                || path.startsWith("/flow") || "OPTIONS".equalsIgnoreCase(request.getMethod())
-                || "OPTIONS".equalsIgnoreCase(request.getMethod());
+        String method = request.getMethod();
+
+        if (path == null) return true;
+
+
+        return method.equalsIgnoreCase("OPTIONS")
+                || path.startsWith("/auth/")
+                || path.startsWith("/flow/");
     }
 
     @Override
@@ -39,15 +40,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7).trim();
-            try {
-                UserPrincipal p = jwt.verify(token);
-                var auth = new UsernamePasswordAuthenticationToken(p, null, List.of());
+        try {
+            String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+            if (header != null && header.startsWith("Bearer ")) {
+                String token = header.substring(7).trim();
+
+                UserPrincipal principal = jwt.verify(token);
+
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                principal,
+                                null,
+                                List.of()
+                        );
+
                 SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (Exception ignored) {
             }
+        } catch (Exception e) {
+
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
