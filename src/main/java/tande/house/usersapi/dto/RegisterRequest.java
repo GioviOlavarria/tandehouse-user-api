@@ -8,6 +8,7 @@ import lombok.Setter;
 
 @Getter @Setter
 public class RegisterRequest {
+
     @NotBlank @Size(min = 2, max = 80)
     private String nombre;
 
@@ -16,4 +17,10 @@ public class RegisterRequest {
 
     @NotBlank @Size(min = 6, max = 72)
     private String password;
+
+
+    private Boolean admin;
+
+
+    private String adminCode;
 }

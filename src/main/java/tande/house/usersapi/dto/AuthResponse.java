@@ -1,9 +1,11 @@
 package tande.house.usersapi.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@Getter @Setter
+@Getter
 @AllArgsConstructor
 public class AuthResponse {
     private String token;
+    private UserMeResponse user;
 }

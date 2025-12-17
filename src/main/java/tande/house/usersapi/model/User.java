@@ -10,6 +10,7 @@ import lombok.*;
         @Index(name = "idx_users_email", columnList = "email", unique = true)
 })
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,7 +21,8 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, length = 120)
+
+    @Column(name = "password", nullable = false, length = 120)
     private String passwordHash;
 
     @Column(nullable = false)
