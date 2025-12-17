@@ -37,7 +37,7 @@ public class AuthController {
         User u = new User();
         u.setNombre(req.getNombre().trim());
         u.setEmail(email);
-        u.setPasswordHash(encoder.encode(req.getPassword()));
+        u.setPassword(encoder.encode(req.getPassword()));
         u.setAdmin(false);
 
         u = repo.save(u);
@@ -57,7 +57,7 @@ public class AuthController {
         User u = repo.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas"));
 
-        if (!encoder.matches(req.getPassword(), u.getPasswordHash())) {
+        if (!encoder.matches(req.getPassword(), u.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
         }
 

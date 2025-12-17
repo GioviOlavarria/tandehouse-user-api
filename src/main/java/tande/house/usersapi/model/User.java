@@ -21,9 +21,8 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-
     @Column(name = "password", nullable = false, length = 120)
-    private String passwordHash;
+    private String password;
 
     @Column(nullable = false)
     private boolean admin;
