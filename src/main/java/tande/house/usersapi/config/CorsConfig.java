@@ -21,22 +21,20 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
 
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+        List<String> patterns = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isBlank())
                 .map(s -> s.endsWith("/") ? s.substring(0, s.length() - 1) : s)
                 .collect(Collectors.toList());
 
-        if (origins.size() == 1 && origins.get(0).equals("*")) {
-            cfg.setAllowCredentials(false);
-            cfg.setAllowedOriginPatterns(List.of("*"));
-        } else {
-            cfg.setAllowCredentials(true);
-            cfg.setAllowedOrigins(origins);
-        }
+        cfg.setAllowCredentials(true);
+
+
+        if (patterns.isEmpty()) patterns = List.of("*");
+        cfg.setAllowedOriginPatterns(patterns);
 
         cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-        cfg.setAllowedHeaders(List.of("Authorization","Content-Type","X-Internal-Key"));
+        cfg.setAllowedHeaders(List.of("*"));
         cfg.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
